@@ -19,6 +19,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Get("/auth/{provider}", s.beginAuthProviderCallback)
 	r.Get("/auth/{provider}/callback", s.getAuthCallback)
+	r.Get("/logout/{provider}", func(res http.ResponseWriter, req *http.Request) {
+		gothic.Logout(res, req)
+		res.Header().Set("Location", "/")
+		res.WriteHeader(http.StatusTemporaryRedirect)
+	})
+
 	return r
 
 }
@@ -50,7 +56,7 @@ func (s *Server) getAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(user)
 
-	http.Redirect(w, r, "http://localhost:5173", http.StatusFound)
+	http.Redirect(w, r, "http://localhost:5173/home", http.StatusFound)
 
 }
 
