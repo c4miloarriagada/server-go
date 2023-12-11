@@ -3,44 +3,15 @@ package db
 import (
 	"log"
 	"os"
-	"time"
+	"serverpackage/internal/models"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-type User struct {
-	UserID    int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name      string    `json:"name"`
-	LastName  string    `json:"lastname"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	Image     string    `json:"image"`
-}
-
-type Account struct {
-	AccountID int     `json:"id" gorm:"primaryKey;autoIncrement"`
-	UserID    int     `json:"userid" gorm:"foreignKey:UserRefer"`
-	Balance   float64 `json:"balance"`
-}
-
-type Transactions struct {
-	TrasnctionID int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	AccountID    int       `json:"accountid" gorm:"foreignKey:AccountRefer"`
-	TimeStamp    time.Time `json:"timestamp"`
-	Descriptions string    `json:"descriptions"`
-	Total        float64   `json:"total"`
-	Type         int       `json:"typeid" gorm:"foreignKey:"`
-}
-
-type Type struct {
-	TypeID int    `json:"id" gorm:"primaryKey;autoIncrement"`
-	Type   string `json:"type" `
-}
-
 type UserFile struct {
-	Users []User
+	Users []models.User
 }
 
 var DB *gorm.DB
@@ -59,14 +30,15 @@ func ConnectDatabase() {
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
-	var models = []interface{}{&User{}, &Account{}, &Transactions{}, &Type{}}
+	var dropModels = []interface{}{&models.User{}, &models.Account{}, &models.Transactions{}, &models.Type{}}
 
-	db.Migrator().DropTable(models...)
+	db.Migrator().DropTable(dropModels...)
+
 	if err != nil {
 		return
 	}
 
-	err = db.AutoMigrate(&User{})
+	err = db.AutoMigrate(&models.User{})
 
 	if err != nil {
 		return

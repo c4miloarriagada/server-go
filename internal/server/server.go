@@ -12,7 +12,7 @@ import (
 )
 
 type Server struct {
-	port int
+	Port int
 }
 
 func NewServer() *http.Server {
@@ -27,13 +27,13 @@ func NewServer() *http.Server {
 		panic((err))
 	}
 
-	NewServer := &Server{
-		port: port,
+	newServer := &Server{
+		Port: port,
 	}
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
+		Addr:         fmt.Sprintf(":%d", newServer.Port),
+		Handler:      newServer.RegisterRoutes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
