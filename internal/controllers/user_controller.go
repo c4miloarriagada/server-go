@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"serverpackage/internal/auth"
 	db "serverpackage/internal/database"
 	"serverpackage/internal/models"
 	"time"
@@ -36,6 +37,10 @@ func GetAuthCallback(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(w, err)
 		return
 	}
+
+	tokenString, err := auth.CreateToken(user.Email)
+
+	fmt.Println(tokenString)
 
 	if err != nil {
 		fmt.Fprintln(w, r)
