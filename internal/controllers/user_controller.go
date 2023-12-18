@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -78,6 +79,20 @@ func BeginAuthProviderCallback(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(context.WithValue(context.Background(), AuthProviderKey, provider))
 
 	gothic.BeginAuthHandler(w, r)
+}
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("jwt_token")
+
+	if token == "" {
+		http.Error(w, "Missing token", http.StatusUnauthorized)
+		return
+	}
+
+	// db.DB.Where(&models.User{Email: token}).First()
+
+	fmt.Println("token: ", token)
+
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {

@@ -1,4 +1,4 @@
-package middleware
+package middlewares
 
 import (
 	"fmt"
@@ -14,19 +14,17 @@ var (
 	port        string
 )
 
-func init() {
-	err := godotenv.Load("")
-	if err != nil {
-		fmt.Println("Error loading .env file")
+func JwtHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := godotenv.Load()
+		if err != nil {
+			fmt.Println("Error loading .env file")
 
-	}
+		}
 
-	redirectURL = os.Getenv("REDIRECT_URL")
-	port = os.Getenv("PORT")
-}
+		redirectURL = os.Getenv("REDIRECT_URL")
+		port = os.Getenv("PORT")
 
-func JwtHandler(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
 		authorizationHeader := r.Header.Get("jwt_token")
 
 		if authorizationHeader == "" {
@@ -35,16 +33,15 @@ func JwtHandler(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		err := auth.VerifyToken(authorizationHeader)
-		if err != nil {
+		authErr := auth.VerifyToken(authorizationHeader)
+		if authErr != nil {
 			http.Error(w, "Token Verification Failed", http.StatusUnauthorized)
 			redirectWithError(w, r, "Token Verification Failed")
 			return
 		}
 
-		fmt.Println("Passed token verification")
-		next(w, r)
-	}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func redirectWithError(w http.ResponseWriter, r *http.Request, errorMsg string) {

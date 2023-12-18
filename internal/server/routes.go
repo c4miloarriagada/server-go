@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"serverpackage/internal/controllers"
+	"serverpackage/internal/middlewares"
 
 	"github.com/go-chi/chi/middleware"
 
@@ -13,10 +14,20 @@ import (
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
+
 	r.Use((middleware.Logger))
-	r.Get("/auth/{provider}", middleware.JwtHandler(s.beginAuthProviderCallback))
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	//auth
+	r.Get("/auth/{provider}", s.beginAuthProviderCallback)
 	r.Get("/auth/{provider}/callback", controllers.GetAuthCallback)
 	r.Get("/logout/{provider}", controllers.Logout)
+
+	//
+	r.With(middlewares.JwtHandler).Get("/getUser", controllers.GetUser)
 
 	return r
 
