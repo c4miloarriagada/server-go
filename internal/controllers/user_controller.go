@@ -2,14 +2,16 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"serverpackage/internal/auth"
 	db "serverpackage/internal/database"
 	"serverpackage/internal/models"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -17,7 +19,16 @@ type contextKey string
 
 const AuthProviderKey contextKey = "provider"
 
+var redirectURL string
+
 func GetAuthCallback(w http.ResponseWriter, r *http.Request) {
+	err := godotenv.Load()
+	if err != nil {
+
+		http.Error(w, "Error loading .env", http.StatusInternalServerError)
+		log.Fatal(err)
+		return
+	}
 
 	provider := chi.URLParam(r, string(AuthProviderKey))
 
@@ -34,20 +45,30 @@ func GetAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.DB.FirstOrCreate(&newUser, &models.User{Email: user.Email}).Error; err != nil {
-		fmt.Println(w, err)
+		http.Error(w, "Failed to create or find user", http.StatusInternalServerError)
+		log.Fatal(err)
 		return
+
 	}
 
 	tokenString, err := auth.CreateToken(user.Email)
 
-	fmt.Println(tokenString)
-
-	if err != nil {
-		fmt.Fprintln(w, r)
-		return
+	cookie := http.Cookie{
+		Name:     "jwt_token",
+		Value:    tokenString,
+		Path:     "/",
+		HttpOnly: true,
 	}
 
-	http.Redirect(w, r, "http://localhost:5173/home", http.StatusFound)
+	if err != nil {
+		http.Error(w, "Failed to create jwt", http.StatusInternalServerError)
+		log.Fatal(err)
+		return
+	}
+	redirectURL := os.Getenv("REDIRECT_URL")
+
+	http.SetCookie(w, &cookie)
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 
 }
 

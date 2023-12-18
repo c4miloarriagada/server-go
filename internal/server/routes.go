@@ -14,7 +14,7 @@ import (
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use((middleware.Logger))
-	r.Get("/auth/{provider}", s.beginAuthProviderCallback)
+	r.Get("/auth/{provider}", middleware.JwtHandler(s.beginAuthProviderCallback))
 	r.Get("/auth/{provider}/callback", controllers.GetAuthCallback)
 	r.Get("/logout/{provider}", controllers.Logout)
 
